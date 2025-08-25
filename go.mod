@@ -1,4 +1,4 @@
-module github.com/mohammadrezajavid-lab/cliphist
+module github.com/mohammadrezajavid-lab/clipstash
 
 go 1.25.0
 

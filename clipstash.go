@@ -15,9 +15,6 @@ import (
 )
 
 func main() {
-	if err := clipboard.Init(); err != nil {
-		log.Fatalf("Failed to initialize clipboard: %v", err)
-	}
 
 	dbPath, err := getDBPath()
 	if err != nil {
@@ -36,6 +33,11 @@ func main() {
 
 func runAgent(db *sql.DB) {
 	log.Println("Agent is running and watching clipboard...")
+
+	if err := clipboard.Init(); err != nil {
+		log.Fatalf("Failed to initialize clipboard: %v", err)
+	}
+
 	ch := clipboard.Watch(context.Background(), clipboard.FmtText)
 
 	var lastContent string
@@ -55,7 +57,15 @@ func runAgent(db *sql.DB) {
 }
 
 func InsertData(content string, db *sql.DB) {
-	log.Println("New item copied: ", content)
+	const previewMax = 40
+
+	preview := content
+
+	if len(preview) > previewMax {
+		preview = preview[:previewMax] + "..."
+	}
+	log.Printf("New item captured (len=%d): %q", len(content), preview)
+
 	stmt, err := db.Prepare("INSERT INTO history(content, created_at) VALUES(?, ?)")
 	if err != nil {
 		log.Println("Error preparing statement: ", err)
@@ -108,8 +118,8 @@ func handleCliCommand(db *sql.DB, args []string) {
 	command := args[0]
 	switch command {
 	case "list":
-		fmt.Println("Last 10 clipboard items:")
-		rows, err := db.Query("SELECT id, content FROM history ORDER BY id DESC LIMIT 10")
+		fmt.Println("Last 15 clipboard items:")
+		rows, err := db.Query("SELECT id, content FROM history ORDER BY id DESC LIMIT 15")
 		if err != nil {
 			log.Fatal(err)
 		}
