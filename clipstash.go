@@ -16,6 +16,10 @@ import (
 
 func main() {
 
+	if err := clipboard.Init(); err != nil {
+		log.Fatalf("Failed to initialize clipboard: %v", err)
+	}
+
 	dbPath, err := getDBPath()
 	if err != nil {
 		log.Fatalf("Could not determine DB path: %v", err)
@@ -33,10 +37,6 @@ func main() {
 
 func runAgent(db *sql.DB) {
 	log.Println("Agent is running and watching clipboard...")
-
-	if err := clipboard.Init(); err != nil {
-		log.Fatalf("Failed to initialize clipboard: %v", err)
-	}
 
 	ch := clipboard.Watch(context.Background(), clipboard.FmtText)
 
